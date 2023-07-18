@@ -8,7 +8,7 @@ trigger:
       - main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'windows-latest'
 
 variables:
   solution: '**/*.sln'
@@ -35,8 +35,7 @@ steps:
     targetType: 'inline'
     script: |
       Write-Host "Visual Studio Version:"
-      vswhere.exe -version 16
-
+      reg query "HKLM\SOFTWARE\Microsoft\VisualStudio\SxS\VS7" /v "15.0" | Select-String -Pattern "\\.*" | ForEach-Object { $_.Matches.Value }
 
 
 
