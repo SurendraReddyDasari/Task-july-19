@@ -49,11 +49,6 @@ steps:
     publishWebProjects: true
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
 
-- task: PublishPipelineArtifact@1
-  inputs:
-    targetPath: '$(Build.ArtifactStagingDirectory)'
-    artifactName: 'drop'
-
 - task: PowerShell@2
   displayName: 'Check Visual Studio Version'
   inputs:
@@ -61,3 +56,10 @@ steps:
     script: |
       Write-Host "Visual Studio Version:"
       vswhere.exe -version 16
+
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'drop'
+
