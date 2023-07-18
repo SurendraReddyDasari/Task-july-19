@@ -29,6 +29,16 @@ steps:
   inputs:
     command: 'restore'
     restoreSolution: '$(solution)'
+- task: PowerShell@2
+  displayName: 'Check Visual Studio Version'
+  inputs:
+    targetType: 'inline'
+    script: |
+      Write-Host "Visual Studio Version:"
+      vswhere.exe -version 16
+
+
+
 
 - task: DotNetCoreCLI@2
   inputs:
@@ -48,15 +58,6 @@ steps:
     projects: '$(solution)'
     publishWebProjects: true
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-
-- task: PowerShell@2
-  displayName: 'Check Visual Studio Version'
-  inputs:
-    targetType: 'inline'
-    script: |
-      Write-Host "Visual Studio Version:"
-      vswhere.exe -version 16
-
 
 - task: PublishPipelineArtifact@1
   inputs:
