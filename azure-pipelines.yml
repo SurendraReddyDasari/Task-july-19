@@ -4,120 +4,65 @@
 # https://docs.microsoft.com/azure/devops/pipelines/apps/aspnet/build-aspnet-4
 pool:
   vmImage: 'ubuntu-latest'
+
 steps:
-- task: UseDotNet@2
-  inputs:
-    version: '6.x'
 - task: UseDotNet@2
   displayName: 'Install .NET Core SDK'
   inputs:
-    version: 6.x
-    performMultiLevelLookup: true
-    includePreviewVersions: true # Required for preview versions
-    trigger:
-- main
+    version: '6.x'
 
-pool:
-  vmImage: 'windows-latest'
-
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'restore'
-    feedsToUse: 'select'
-    vstsFeed: 'my-vsts-feed' # A series of numbers and letters
-
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'build'
-    arguments: '--configuration $(buildConfiguration)'
-  displayName: 'dotnet build $(buildConfiguration)'
-  # do this before your build tasks
-steps:
 - task: DotNetCoreCLI@2
   displayName: Restore
   inputs:
     command: restore
     projects: '**/*.csproj'
-    feedsToUse: config
-    nugetConfigPath: NuGet.config    # Relative to root of the repository
-    externalFeedCredentials: <Name of the NuGet service connection>
-steps:
+    feedsToUse: 'config'
+    nugetConfigPath: 'NuGet.config'  # Relative to the root of the repository
+    externalFeedCredentials: '<Name of the NuGet service connection>'
+
 - task: DotNetCoreCLI@2
   displayName: Build
   inputs:
     command: build
     projects: '**/*.csproj'
-    arguments: '--configuration $(buildConfiguration)' # Update this to match your need
-    steps:
+    arguments: '--configuration $(buildConfiguration)'  # Update this to match your needs
+
 - task: DotNetCoreCLI@2
   displayName: 'Install dotnetsay'
   inputs:
     command: custom
     custom: tool
     arguments: 'install -g dotnetsay'
-    steps:
-# ...
-# do this after other tasks such as building
-- task: DotNetCoreCLI@2
-  inputs:
-    command: test
-    projects: '**/*Tests/*.csproj'
-    arguments: '--configuration $(buildConfiguration)'
-    steps:
-# ...
-# do this after your tests have run
+
 - script: dotnet test <test-project> --logger trx
+
 - task: PublishTestResults@2
   condition: succeededOrFailed()
   inputs:
     testRunner: VSTest
     testResultsFiles: '**/*.trx'
-    steps:
-# ...
-# do this after other tasks such as building
+
 - task: DotNetCoreCLI@2
   inputs:
     command: test
     projects: '**/*Tests/*.csproj'
     arguments: '--configuration $(buildConfiguration) --collect "Code coverage"'
-    steps:
-# ...
-# do this after your tests have run
+
 - script: dotnet test <test-project> --logger trx --collect "Code coverage"
+
 - task: PublishTestResults@2
   inputs:
     testRunner: VSTest
     testResultsFiles: '**/*.trx'
-    steps:
 
 - task: DotNetCoreCLI@2
   inputs:
     command: publish
-    publishWebProjects: True
+    publishWebProjects: true
     arguments: '--configuration $(BuildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-    zipAfterPublish: True
+    zipAfterPublish: true
 
-# this code takes all the files in $(Build.ArtifactStagingDirectory) and uploads them as an artifact of your build.
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)' 
     artifactName: 'myWebsiteName'
-    steps:
-# ...
-# do this near the end of your pipeline in most cases
-- script: dotnet pack /p:PackageVersion=$(version)  # define version variable elsewhere in your pipeline
-- task: NuGetAuthenticate@0
-  input:
-    nuGetServiceConnections: '<Name of the NuGet service connection>'
-- task: NuGetCommand@2
-  inputs:
-    command: push
-    nuGetFeedType: external
-    publishFeedCredentials: '<Name of the NuGet service connection>'
-    versioningScheme: byEnvVar
-    versionEnvVar: version
-    steps:
-# ...
-# do this after you've built your app, near the end of your pipeline in most cases
-# for example, you do this before you deploy to an Azure web app on Windows
-
