@@ -25,7 +25,7 @@ jobs:
         displayName: 'Build the application'
         inputs:
           command: 'build'
-          projects: '**/*.csproj'
+          projects: '**/*todo.csproj'
           arguments: '--configuration $(buildConfiguration)'
 
       - task: DotNetCoreCLI@2
