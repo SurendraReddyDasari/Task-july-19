@@ -29,6 +29,11 @@ steps:
   inputs:
     command: 'restore'
     restoreSolution: '$(solution)'
+- script: |
+    curl -sSL https://aka.ms/vs/install -o installer.sh
+    chmod +x installer.sh
+    ./installer.sh --installPath /opt/visualstudio --channelUri https://aka.ms/vs/17/release/channel --installChannelUri https://aka.ms/vs/17/release/installer
+
 - task: PowerShell@2
   displayName: 'Check Visual Studio Version'
   inputs:
