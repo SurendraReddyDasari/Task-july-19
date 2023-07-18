@@ -17,7 +17,7 @@ steps:
     command: restore
     projects: '**/*.csproj'
     feedsToUse: 'config'
-    nugetConfigPath: 'NuGet.config'  # Relative to the root of the repository
+    nugetConfigPath: '/home/vsts/work/1/s/NuGet.config'  # Relative to the root of the repository
   
 
 - task: DotNetCoreCLI@2
