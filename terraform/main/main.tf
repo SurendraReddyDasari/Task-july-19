@@ -16,7 +16,12 @@ module "key_vault" {
   tenant_id = data.azurerm_client_config.current.tenant_id
   object_id = data.azurerm_client_config.current.object_id
 }
-
+module "cosmosdb_account" {    
+  source    = "../modules/cosmosdb"
+  depends_on = [ module.key_vault ]
+  rg_name   = var.rg_name
+  location  = var.location  
+}
 module "storage_account" {    
   source    = "../modules/storageaccount"
   depends_on = [ module.resource_group ]
