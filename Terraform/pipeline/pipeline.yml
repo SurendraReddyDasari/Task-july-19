@@ -41,7 +41,7 @@ jobs:
     displayName: Terraform Plan
     dependsOn: Build
     steps:
-      - script: 'terraform version'
+      - script: 'terraform  -chdir=Terraform/main/ version -input=false'
         displayName: 'Terraform Version'
 
       - script: 'terraform -chdir=Terraform/main/ init -input=false'
