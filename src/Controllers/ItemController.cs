@@ -13,9 +13,9 @@
             var items = await TodoItemService.GetOpenItemsAsync();
             return View(items);
         }
-        
+
         [ActionName("Create")]
-        public async Task<ActionResult> CreateAsync()
+        public ActionResult Create()
         {
             return View();
         }
@@ -30,7 +30,6 @@
                 await TodoItemService.CreateItemAsync(item);
                 return RedirectToAction("Index");
             }
-
             return View(item);
         }
 
@@ -44,7 +43,6 @@
                 await TodoItemService.UpdateItemAsync(item);
                 return RedirectToAction("Index");
             }
-
             return View(item);
         }
 
@@ -55,13 +53,11 @@
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-
             TodoItem item = await TodoItemService.GetTodoItemAsync(id, category);
             if (item == null)
             {
                 return HttpNotFound();
             }
-
             return View(item);
         }
 
@@ -72,13 +68,11 @@
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-
             TodoItem item = await TodoItemService.GetTodoItemAsync(id, category);
             if (item == null)
             {
                 return HttpNotFound();
             }
-
             return View(item);
         }
 
