@@ -8,12 +8,10 @@ jobs:
   displayName: 'Build and Test'
   pool:
     vmImage: 'windows-latest'
-
   variables:
     solution: '**/*.sln'
     buildPlatform: 'Any CPU'
     buildConfiguration: 'Release'
-
   steps:
   - task: NuGetToolInstaller@1
 
@@ -38,3 +36,61 @@ jobs:
       PathtoPublish: '$(Build.ArtifactStagingDirectory)'
       ArtifactName: 'drop'
       publishLocation: 'Container'
+
+- job: TerraformPlan
+  displayName: Terraform Plan
+  dependsOn: BuildAndTest
+  steps:
+  - script: |
+      choco install terraform -y 
+      terraform version
+    displayName: 'Terraform Version'
+
+  - script: |
+      terraform -chdir=Terraform/main/ init -input=false
+    displayName: 'Init'
+    env:
+      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+      ARM_TENANT_ID: $(ARM_TENANT_ID)
+      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+
+  - script: |
+      terraform -chdir=Terraform/main/ validate
+    displayName: 'Validate'
+
+  - script: |
+      terraform -chdir=Terraform/main/ plan -input=false
+    displayName: 'Plan'
+    env:
+      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+      ARM_TENANT_ID: $(ARM_TENANT_ID)
+      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+
+- job: TerraformApply
+  displayName: Terraform Apply
+  dependsOn: TerraformPlan
+  steps:
+  - script: |
+      choco install terraform -y 
+      terraform version
+    displayName: 'Terraform Version'
+
+  - script: |
+      terraform -chdir=Terraform/main/ init -input=false
+    displayName: 'Init'
+    env:
+      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+      ARM_TENANT_ID: $(ARM_TENANT_ID)
+      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+
+  - script: |
+      terraform -chdir=Terraform/main/ apply -auto-approve -input=false
+    displayName: 'Apply'
+    env:
+      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+      ARM_TENANT_ID: $(ARM_TENANT_ID)
+      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
