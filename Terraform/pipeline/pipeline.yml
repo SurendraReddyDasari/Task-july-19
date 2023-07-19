@@ -1,5 +1,5 @@
 trigger:
-- main
+  - main
 
 pool:
   vmImage: 'windows-latest'
@@ -9,27 +9,76 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
-steps:
-- task: NuGetToolInstaller@1
-  
+jobs:
+  - job: Build
+    displayName: Build
+    steps:
+      - task: NuGetToolInstaller@1
 
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
+      - task: NuGetCommand@2
+        inputs:
+          restoreSolution: '$(solution)'
 
-- task: VSBuild@1
-  inputs:
-    solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+      - task: VSBuild@1
+        inputs:
+          solution: '$(solution)'
+          msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
+          platform: '$(buildPlatform)'
+          configuration: '$(buildConfiguration)'
 
-- task: VSTest@2
-  inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'drop'
-    publishLocation: 'Container'
+      - task: VSTest@2
+        inputs:
+          platform: '$(buildPlatform)'
+          configuration: '$(buildConfiguration)'
+
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          ArtifactName: 'drop'
+          publishLocation: 'Container'
+
+  - job: TerraformPlan
+    displayName: Terraform Plan
+    dependsOn: Build
+    steps:
+      - script: 'terraform version'
+        displayName: 'Terraform Version'
+
+      - script: 'terraform -chdir=Terraform/main/ init -input=false'
+        displayName: 'Init'
+        env:
+          ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+          ARM_TENANT_ID: $(ARM_TENANT_ID)
+          ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+          ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+
+      - script: 'terraform -chdir=Terraform/main/ validate'
+        displayName: 'Validate'
+
+      - script: 'terraform -chdir=Terraform/main/ plan -input=false'
+        displayName: 'Plan'
+        env:
+          ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+          ARM_TENANT_ID: $(ARM_TENANT_ID)
+          ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+          ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+
+  - job: TerraformApply
+    displayName: Terraform Apply
+    dependsOn: TerraformPlan
+    steps:
+      - script: 'terraform -chdir=Terraform/main/ init -input=false'
+        displayName: 'Init'
+        env:
+          ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+          ARM_TENANT_ID: $(ARM_TENANT_ID)
+          ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+          ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+
+      - script: 'terraform -chdir=Terraform/main/ apply -auto-approve -input=false'
+        displayName: 'Apply'
+        env:
+          ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+          ARM_TENANT_ID: $(ARM_TENANT_ID)
+          ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+          ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
