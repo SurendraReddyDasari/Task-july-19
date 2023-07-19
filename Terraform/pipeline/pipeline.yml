@@ -4,11 +4,6 @@ trigger:
 pool:
   vmImage: 'windows-latest'
 
-variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
-
 jobs:
   - job: Build
     displayName: Build
@@ -17,19 +12,18 @@ jobs:
 
       - task: NuGetCommand@2
         inputs:
-          restoreSolution: '$(solution)'
+          restoreSolution: '**/*.sln'
 
       - task: VSBuild@1
         inputs:
-          solution: '$(solution)'
-          msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
-          platform: '$(buildPlatform)'
-          configuration: '$(buildConfiguration)'
+          solution: '**/*.sln'
+          platform: 'Any CPU'
+          configuration: 'Release'
 
       - task: VSTest@2
         inputs:
-          platform: '$(buildPlatform)'
-          configuration: '$(buildConfiguration)'
+          platform: 'Any CPU'
+          configuration: 'Release'
 
       - task: PublishBuildArtifacts@1
         inputs:
@@ -41,10 +35,13 @@ jobs:
     displayName: Terraform Plan
     dependsOn: Build
     steps:
-      - script: 'terraform  -chdir=Terraform/main/ version -input=false'
+      - script: |
+          choco install terraform -y --version=<desired_version>
+          terraform version
         displayName: 'Terraform Version'
 
-      - script: 'terraform -chdir=Terraform/main/ init -input=false'
+      - script: |
+          terraform -chdir=Terraform/main/ init -input=false
         displayName: 'Init'
         env:
           ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
@@ -52,10 +49,12 @@ jobs:
           ARM_CLIENT_ID: $(ARM_CLIENT_ID)
           ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
 
-      - script: 'terraform -chdir=Terraform/main/ validate'
+      - script: |
+          terraform -chdir=Terraform/main/ validate
         displayName: 'Validate'
 
-      - script: 'terraform -chdir=Terraform/main/ plan -input=false'
+      - script: |
+          terraform -chdir=Terraform/main/ plan -input=false
         displayName: 'Plan'
         env:
           ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
@@ -67,7 +66,13 @@ jobs:
     displayName: Terraform Apply
     dependsOn: TerraformPlan
     steps:
-      - script: 'terraform -chdir=Terraform/main/ init -input=false'
+      - script: |
+          choco install terraform -y 
+          terraform version
+        displayName: 'Terraform Version'
+
+      - script: |
+          terraform -chdir=Terraform/main/ init -input=false
         displayName: 'Init'
         env:
           ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
@@ -75,7 +80,8 @@ jobs:
           ARM_CLIENT_ID: $(ARM_CLIENT_ID)
           ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
 
-      - script: 'terraform -chdir=Terraform/main/ apply -auto-approve -input=false'
+      - script: |
+          terraform -chdir=Terraform/main/ apply -auto-approve -input=false
         displayName: 'Apply'
         env:
           ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
