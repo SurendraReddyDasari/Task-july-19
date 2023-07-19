@@ -1,110 +1,35 @@
 trigger:
-  - main
+- main
 
 pool:
   vmImage: 'windows-latest'
 
-jobs:
-  - job: CI
-    displayName: CI
-    steps: 
-      - task: NuGetToolInstaller@1
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
 
-      - task: NuGetCommand@2
-        inputs:
-          restoreSolution: '**/*.sln'
+steps:
+- task: NuGetToolInstaller@1
+  
 
-      - task: VSBuild@1
-        inputs:
-          solution: '**/*.sln'
-          platform: 'Any CPU'
-          configuration: 'Release'
+- task: NuGetCommand@2
+  inputs:
+    restoreSolution: '$(solution)'
 
-      - task: VSTest@2
-        inputs:
-          platform: 'Any CPU'
-          configuration: 'Release'
+- task: VSBuild@1
+  inputs:
+    solution: '$(solution)'
+    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
 
-      - task: PublishPipelineArtifact@1
-        displayName: 'Publish artifacts'
-        inputs:
-          artifactName: 'publish'
-          targetPath: '$(Build.ArtifactStagingDirectory)/publish'
-
-  - job: TerraformPlan
-    displayName: Terraform Plan
-    dependsOn: 
-    steps:
-      - script: |
-          choco install terraform -y 
-          terraform version
-        displayName: 'Terraform Version'
-
-      - script: |
-          terraform -chdir=Terraform/main/ init -input=false
-        displayName: 'Init'
-        env:
-          ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-          ARM_TENANT_ID: $(ARM_TENANT_ID)
-          ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-          ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-
-      - script: |
-          terraform -chdir=Terraform/main/ validate
-        displayName: 'Validate'
-
-      - script: |
-          terraform -chdir=Terraform/main/ plan -input=false
-        displayName: 'Plan'
-        env:
-          ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-          ARM_TENANT_ID: $(ARM_TENANT_ID)
-          ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-          ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-
-  - job: TerraformApply
-    displayName: Terraform Apply
-    dependsOn: TerraformPlan
-    steps:
-      - script: |
-          choco install terraform -y 
-          terraform version
-        displayName: 'Terraform Version'
-
-      - script: |
-          terraform -chdir=Terraform/main/ init -input=false
-        displayName: 'Init'
-        env:
-          ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-          ARM_TENANT_ID: $(ARM_TENANT_ID)
-          ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-          ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-
-      - script: |
-          terraform -chdir=Terraform/main/ apply -auto-approve -input=false
-        displayName: 'Apply'
-        env:
-          ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-          ARM_TENANT_ID: $(ARM_TENANT_ID)
-          ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-          ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-
-
-  - job: CD
-    displayName: Deploy to Azure Web App - CD
-    dependsOn: CI
-    steps:
-      - task: DownloadPipelineArtifact@2
-        displayName: 'Download artifacts'
-        inputs:
-          artifactName: 'publish'
-          downloadPath: '$(Pipeline.Workspace)/publish'
-
-      - task: AzureRmWebAppDeployment@4
-        displayName: 'Deploy Azure App Service'
-        inputs:
-          azureSubscription: '$(Parameters.ConnectedServiceName)'
-          appType: '$(Parameters.WebAppKind)'
-          WebAppName: '$(Parameters.WebAppName)'
-          package: '$(Pipeline.Workspace)/publish/**/*.zip'
-          RuntimeStack: 'DOTNETCORE|7.0'
+- task: VSTest@2
+  inputs:
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
