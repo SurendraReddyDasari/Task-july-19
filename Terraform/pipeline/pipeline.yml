@@ -96,9 +96,9 @@ jobs:
       ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
 
 
-- job: CD 
-  displayName: Deploy on webapp
-  dependsOn: CI
+- job: Deployment  
+  displayName: Deployment
+  dependsOn: BuildAndTest
   steps:
   - task: DownloadPipelineArtifact@2
     displayName: 'Download artifacts'
