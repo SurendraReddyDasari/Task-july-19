@@ -6,6 +6,7 @@ trigger:
 jobs:
 - job: BuildAndTest
   displayName: 'Build and Test'
+  dependsOn: TerraformApply
   pool:
     vmImage: 'windows-latest'
   variables:
@@ -38,7 +39,7 @@ jobs:
 
 - job: TerraformPlan
   displayName: Terraform Plan
-  dependsOn: BuildAndTest
+  
   steps:
   - script: |
       choco install terraform -y 
@@ -95,4 +96,21 @@ jobs:
       ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
 
 
+- job: CD 
+  displayName: Deploy on webapp
+  dependsOn: CI
+  steps:
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download artifacts'
+    inputs:
+      artifactName: 'publish'
+      downloadPath: '$(Pipeline.Workspace)/publish'
 
+  - task: AzureRmWebAppDeployment@4
+    displayName: 'Deploy Azure App Service'
+    inputs:
+      azureSubscription: '$(Parameters.ConnectedServiceName)'
+      appType: '$(Parameters.WebAppKind)'
+      WebAppName: '$(Parameters.WebAppName)'
+      package: '$(Pipeline.Workspace)/publish/**/*.zip'
+      RuntimeStack: 'DOTNETCORE|7.0'
