@@ -7,7 +7,7 @@ pool:
 jobs:
   - job: CI
     displayName: CI
-    steps:
+    steps: 
       - task: NuGetToolInstaller@1
 
       - task: NuGetCommand@2
@@ -33,7 +33,7 @@ jobs:
 
   - job: TerraformPlan
     displayName: Terraform Plan
-    dependsOn: Build
+    dependsOn: 
     steps:
       - script: |
           choco install terraform -y 
