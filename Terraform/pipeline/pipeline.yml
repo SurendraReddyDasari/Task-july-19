@@ -25,11 +25,11 @@ jobs:
           platform: 'Any CPU'
           configuration: 'Release'
 
-      - task: PublishBuildArtifacts@1
+      - task: PublishPipelineArtifact@1
+        displayName: 'Publish artifacts'
         inputs:
-          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-          ArtifactName: 'drop'
-          publishLocation: 'Container'
+          artifactName: 'publish'
+          targetPath: '$(Build.ArtifactStagingDirectory)/publish'
 
   - job: TerraformPlan
     displayName: Terraform Plan
@@ -89,7 +89,7 @@ jobs:
           ARM_CLIENT_ID: $(ARM_CLIENT_ID)
           ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
 
-          
+
   - job: CD
     displayName: Deploy to Azure Web App - CD
     dependsOn: CI
