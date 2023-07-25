@@ -7,3 +7,9 @@ variable "rg_name" {
     description =  "Name of the Resource Group"
     default = ""  
 }
+
+variable "cosmos_db" {
+  description = "Name of the cosmos db"
+  default = ""
+  type        = string
+}
