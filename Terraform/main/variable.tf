@@ -44,5 +44,5 @@ variable "storage_account_access_key" {
 }
 
 variable "cosmos_db" {
-  default = "techslate-ade-cosmosdb-191"
+  default = "ts-cosmosdb-191"
 }
