@@ -42,3 +42,7 @@ variable "webapp_name" {
 variable "storage_account_access_key" {
     default = "techslate-web-191"
 }
+
+variable "cosmos_db" {
+  default = "techslate-ade-cosmosdb-191"
+}
