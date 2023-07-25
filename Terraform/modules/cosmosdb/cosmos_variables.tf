@@ -10,6 +10,5 @@ variable "rg_name" {
 
 variable "cosmos_db" {
   description = "Name of the cosmos db"
-  default = ""
   type        = string
 }
