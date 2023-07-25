@@ -113,4 +113,4 @@ jobs:
       appType: '$(Parameters.WebAppKind)'
       WebAppName: '$(Parameters.WebAppName)'
       package: '$(Pipeline.Workspace)/publish/**/*.zip'
-      RuntimeStack: 'DOTNETCORE|7.0'
+      RuntimeStack: 'ASPNET|V4.8'
