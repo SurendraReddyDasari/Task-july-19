@@ -69,10 +69,11 @@ variable "use_32_bit_worker_process" {
   default     = false
 }
 
-variable "linux_fx_version" {
-  description = "Linux function runtime version for the Web App."
+variable "windows_fx_version" {
+  description = "Windows function runtime version for the Web App."
   type        = string
 }
+
 variable "storage_account_access_key" {
   description = "(Required) Specifies the name of the Function App. Changing this forces a new resource to be created. Limit the function name to 32 characters to avoid naming collisions. For more information about Function App naming rule"
   type = string
