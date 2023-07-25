@@ -48,4 +48,5 @@ module "web_app" {
   storage_account_access_key    = module.storage_account.primary_access_key
   linux_fx_version              = "~7|dotnet"
   asp_name                      = var.asp_name
+  service_plan_id               = module.app_service_plan.app_service_id
 }
