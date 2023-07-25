@@ -20,7 +20,8 @@ module "cosmosdb_account" {
   source    = "../modules/cosmosdb"
   depends_on = [ module.key_vault ]
   rg_name   = var.rg_name
-  location  = var.location  
+  location  = var.location
+  cosmos_db = var.cosmos_db  
 }
 module "storage_account" {    
   source    = "../modules/storageaccount"
